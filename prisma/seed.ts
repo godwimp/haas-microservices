@@ -58,6 +58,12 @@ async function main() {
     { name: 'ADD_PERMISSION', resource: 'PERMISSION', action: 'ADD', description: 'Create new permission' },
     { name: 'UPDATE_PERMISSION', resource: 'PERMISSION', action: 'UPDATE', description: 'Update permission information' },
     { name: 'DELETE_PERMISSION', resource: 'PERMISSION', action: 'DELETE', description: 'Delete permission' },
+
+    // Honeypot Management
+    { name: 'VIEW_TRAP', resource: 'HONEYPOT', action: 'VIEW', description: 'View all traps' },
+    { name: 'ADD_TRAP', resource: 'HONEYPOT', action: 'ADD', description: 'Create new trap' },
+    { name: 'UPDATE_TRAP', resource: 'HONEYPOT', action: 'UPDATE', description: 'Update trap information' },
+    { name: 'DELETE_TRAP', resource: 'HONEYPOT', action: 'DELETE', description: 'Delete trap' },
   ];
 
   const permissions = await Promise.all(
@@ -101,15 +107,15 @@ async function main() {
   // ============================================
   console.log('👥 Seeding users...');
 
-  const defaultPassword = 'password123';
+  const defaultPassword = '!Xiaot1ng';
   const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
   const adminUser = await prisma.user.create({
     data: {
-      email: 'admin@urbansolv.co.id',
+      email: 'fm@haasmicroservice.id',
       password: hashedPassword,
       first_name: 'Admin',
-      last_name: 'Urbansolv',
+      last_name: 'FM',
       position_id: adminPosition.id,
       is_active: true,
     },
@@ -117,10 +123,10 @@ async function main() {
 
   const memberUser = await prisma.user.create({
     data: {
-      email: 'member@urbansolv.co.id',
+      email: 'fmember@haasmicroservice.id',
       password: hashedPassword,
       first_name: 'Member',
-      last_name: 'User',
+      last_name: 'FM',
       position_id: memberPosition.id,
       is_active: true,
     },

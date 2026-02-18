@@ -63,3 +63,6 @@ structure.txt
 # Local Data
 prisma/data
 uploads/
+
+# Important Seeder
+prisma/seed.ts

@@ -77,3 +77,45 @@ model PositionPermission {
   @@unique([position_id, permission_id])
   @@map("position_permissions")
 }
+
+model Trap {
+  id            String     @id @default(uuid())
+  path          String     @unique // e.g "/admin/config"
+  method        String     @default("*") // GET, POST, PUT, DELETE, * (any)
+  severity      String     @default("HIGH") // LOW, MEDIUM, HIGH, CRITICAL
+  response_code Int        @default(404) // 200, 404, 500, 403
+  response_body Json?
+  description   String?    // Fake "admin panel"
+  is_active     Boolean    @default(true)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  // Relations
+  trap_logs     TrapLog[]
+
+  @@map("traps")
+}
+
+model TrapLog {
+  id             String     @id @default(uuid())
+  trap_id        String
+  ip_address     String
+  method         String
+  user_agent     String?
+  headers        Json? // all request headers
+  query_params   Json?
+  body           Json?
+  country_code   String?
+  is_vpn         Boolean?
+  risk_score     Int?       @default(0)
+  created_at     DateTime   @default(now())
+
+  // Relations
+  trap           Trap       @relation(fields: [trap_id], references: [id], onDelete: Cascade)
+
+  @@map("trap_logs")
+  @@index([trap_id])
+  @@index([ip_address])
+  @@index([created_at])
+  @@index([risk_score])
+}

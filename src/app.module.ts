@@ -19,6 +19,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { HealthModule } from './modules/health/health.module';
+import { HoneypotModule } from '@modules/honeypot/honeypot.module';
 
 @Module({
   imports: [
@@ -36,8 +37,19 @@ import { HealthModule } from './modules/health/health.module';
     AuthModule,
     UsersModule,
     HealthModule,
+    HoneypotModule,
   ],
   providers: [
+
+    // Global interceptors
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
     // Global guards
     {
       provide: APP_GUARD,
@@ -52,16 +64,6 @@ import { HealthModule } from './modules/health/health.module';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
-    },
-
-    // Global interceptors
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TransformInterceptor,
     },
   ],
 })

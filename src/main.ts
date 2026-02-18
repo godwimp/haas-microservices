@@ -49,8 +49,8 @@ async function bootstrap() {
   // Swagger Documentation
   if (swaggerEnabled) {
     const config = new DocumentBuilder()
-      .setTitle('Urbansolv API')
-      .setDescription('Urbansolv NestJS Backend API Documentation')
+      .setTitle('Honeypot Microservices API')
+      .setDescription('Honeypot Microservices Backend API Documentation')
       .setVersion('1.0')
       .addBearerAuth(
         {

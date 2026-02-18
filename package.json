@@ -1,8 +1,8 @@
 {
-  "name": "my-app",
+  "name": "haas-microservices",
   "version": "1.0.0",
-  "description": "Urbansolv NestJS Application",
-  "author": "Urbansolv",
+  "description": "Honeypot Microservices",
+  "author": "Fadhiel M",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -24,4 +24,12 @@ export const PERMISSIONS = {
     UPDATE: 'UPDATE_PERMISSION',
     DELETE: 'DELETE_PERMISSION',
   },
+
+  // Honeypot Management
+  HONEYPOT: {
+    VIEW: 'VIEW_TRAP',
+    ADD: 'ADD_TRAP',
+    UPDATE: 'UPDATE_TRAP',
+    DELETE: 'DELETE_TRAP',
+  }
 } as const;

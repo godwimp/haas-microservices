@@ -27,4 +27,20 @@ export const validationSchema = Joi.object({
   // Swagger
   SWAGGER_ENABLED: Joi.boolean().default(true),
   SWAGGER_PATH: Joi.string().default('api-docs'),
+
+  // Redis
+  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_PORT: Joi.number().default(6379),
+  REDIS_PASSWORD: Joi.string().default(''),
+  REDIS_DB: Joi.number().default(0),
+
+  // BullMQ
+  BULLMQ_REDIS_HOST: Joi.string().default('localhost'),
+  BULLMQ_REDIS_PORT: Joi.number().default(6379),
+  BULLMQ_REDIS_PASSWORD: Joi.string().default(''),
+
+  // Honeypot
+  HONEYPOT_API_KEY: Joi.string().default(''),
+  IP_ENRICHMENT_ENABLED: Joi.boolean().default(true),
+  IP_ENRICHMENT_API_KEY: Joi.string().allow('').optional(),
 });
