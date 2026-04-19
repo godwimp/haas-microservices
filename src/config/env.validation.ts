@@ -43,4 +43,10 @@ export const validationSchema = Joi.object({
   HONEYPOT_API_KEY: Joi.string().default(''),
   IP_ENRICHMENT_ENABLED: Joi.boolean().default(true),
   IP_ENRICHMENT_API_KEY: Joi.string().allow('').optional(),
+
+  // Alerta Alerta
+  ALERT_ENABLED: Joi.boolean().default(true),
+  ALERT_RISK_THRESHOLD: Joi.number().default(70),
+  ALERT_COOLDOWN_SECONDS: Joi.number().default(300),
+  DISCORD_WEBHOOK_URL: Joi.string().uri().optional().allow(''),
 });

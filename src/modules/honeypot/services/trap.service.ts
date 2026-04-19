@@ -1,18 +1,30 @@
-import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
 import { CreateTrapDto, UpdateTrapDto } from '../dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from '@nestjs/cache-manager';
+import type { Trap } from '@prisma/client';
 
 @Injectable()
 export class TrapService {
-  private readonly CACHE_KEY = 'active_traps';
-  private readonly CACHE_TTL = 300;
+  private readonly CACHE_TTL = 300 * 1000;
 
+  private getTrapCacheKey(path: string, method: string): string {
+    return `trap:${path}:${method}`;
+  }
+
+  private readonly logger = new Logger(TrapService.name);
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async invalidateTrapCache(path?: string): Promise<void> {
+    if (path) {
+      const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', '*'];
+      await Promise.all(methods.map((m) => this.cacheManager.del(this.getTrapCacheKey(path, m))));
+    }
+  }
 
   async create(createTrapDto: CreateTrapDto) {
     const existing = await this.prisma.trap.findUnique({
@@ -23,17 +35,13 @@ export class TrapService {
       throw new ConflictException(`Trap with path '${createTrapDto.path}' already exists`);
     }
 
-    const trap = await this.prisma.trap.create({
-      data: createTrapDto,
-    });
-
-    await this.cacheManager.del(this.CACHE_KEY);
-
+    const trap = await this.prisma.trap.create({ data: createTrapDto });
+    await this.invalidateTrapCache(trap.path);
     return trap;
   }
 
   async findAll() {
-    const traps =  await this.prisma.trap.findMany({
+    const traps = await this.prisma.trap.findMany({
       orderBy: { created_at: 'desc' },
       include: {
         _count: {
@@ -66,61 +74,57 @@ export class TrapService {
     return trap;
   }
 
-  async findActiveTrapByPath(path: string, method: string) {
-    const cached = await this.cacheManager.get<any[]>(this.CACHE_KEY);
+  async findActiveTrapByPath(path: string, method: string): Promise<Trap | null> {
+    const cacheKey = this.getTrapCacheKey(path, method);
+    const cached = await this.cacheManager.get<Trap>(cacheKey);
     if (cached) {
-      return cached.find(
-        (trap) =>
-          trap.path === path && trap.is_active && (trap.method === '*' || trap.method === method),
-      );
+      this.logger.debug(`Cache HIT: ${cacheKey}`);
+      return cached;
     }
 
-    const activeTraps = await this.prisma.trap.findMany({
-      where: { is_active: true },
+    this.logger.debug(`Cache MISS: ${cacheKey}, querying database...`);
+
+    const traps = await this.prisma.trap.findMany({
+      where: {
+        path,
+        is_active: true,
+        method: { in: [method, '*'] },
+      },
     });
 
-    await this.cacheManager.set(this.CACHE_KEY, activeTraps, this.CACHE_TTL);
+    const result: Trap | null =
+      traps.find((t) => t.method === method) ?? traps.find((t) => t.method === '*') ?? null;
 
-    return activeTraps.find(
-      (trap) => trap.path === path && (trap.method === '*' || trap.method === method),
-    );
+    if (result) {
+      await this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
+    }
+    return result;
   }
 
   async update(id: string, updateTrapDto: UpdateTrapDto) {
-    await this.findOne(id);
-
-    const trap = await this.prisma.trap.update({
+    const trap = await this.findOne(id);
+    const updated = await this.prisma.trap.update({
       where: { id },
       data: updateTrapDto,
     });
-
-    await this.cacheManager.del(this.CACHE_KEY);
-
-    return trap;
+    await this.invalidateTrapCache(trap.path);
+    return updated;
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-
-    await this.prisma.trap.delete({
-      where: { id },
-    });
-
-    await this.cacheManager.del(this.CACHE_KEY);
-
+    const trap = await this.findOne(id);
+    await this.prisma.trap.delete({ where: { id } });
+    await this.invalidateTrapCache(trap.path);
     return { message: 'Trap deleted successfully' };
   }
 
   async toggleActive(id: string) {
     const trap = await this.findOne(id);
-
     const updated = await this.prisma.trap.update({
       where: { id },
       data: { is_active: !trap.is_active },
     });
-
-    await this.cacheManager.del(this.CACHE_KEY);
-
+    await this.invalidateTrapCache(trap.path);
     return updated;
   }
 }
